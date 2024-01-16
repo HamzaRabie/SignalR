@@ -1,0 +1,62 @@
+﻿
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>chat</h1>
+<div>
+    <input type="text" id="txt" />
+    <input type="button" value="send" onclick="send()" /><br />
+    <input type="text" id="Gtxt" />
+    <input type="button" value="join group" onclick="join()" /><br />
+    <input type="button" value="send to group" onclick="sendgroup()" />
+
+
+
+    <ul id="u">
+    </ul>
+</div>
+
+
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
+    <script>
+        name = prompt("enter your name");
+        //define connection
+        con = new signalR.HubConnectionBuilder().withUrl("/chat").build();
+
+
+        //start conn
+        con.start();
+
+        //callback fun
+        con.on("newmessage", function (c) {
+            $("#u").append("<li>" + c.name + ":" + c.message + "</li>");
+        })
+        con.on("newmember", function (n, g) {
+            $("#u").append("<li><i>" + n + "join" + g + "</i></li>");
+        } )
+
+        con.on("newmessagegroup", function (n, g, m) {
+            $("#u").append("<li><i>" + n + "(" + g +"):"+ m +"</i></li>");
+        });
+
+        //calling service method
+
+        function send() {
+            con.invoke("sendMessage", { name : name,  message: $("#txt").val() });
+        }
+        
+        function join() {
+            con.invoke("joinGroup", $("#Gtxt").val(), name);
+        }
+
+        function sendgroup(){
+            con.invoke("sendToGroup", $("#Gtxt").val(), $("#txt").val(), name);
+        }
+
+    </script>
+
+
+}
